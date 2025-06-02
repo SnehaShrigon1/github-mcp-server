@@ -69,17 +69,20 @@ func requiredParam[T comparable](r mcp.CallToolRequest, p string) (T, error) {
 
 	// Check if the parameter is present in the request
 	if _, ok := r.GetArguments()[p]; !ok {
-		return zero, fmt.Errorf("missing required parameter: %s", p)
+		return zero, MissingRequiredParameterError{Parameter: p}
 	}
 
 	// Check if the parameter is of the expected type
 	if _, ok := r.GetArguments()[p].(T); !ok {
-		return zero, fmt.Errorf("parameter %s is not of type %T", p, zero)
+		return zero, InvalidParameterTypeError{
+			Parameter: p,
+			Expected:  fmt.Sprintf("%T", zero),
+			Actual:    fmt.Sprintf("%T", r.GetArguments()[p]),
+		}
 	}
 
 	if r.GetArguments()[p].(T) == zero {
-		return zero, fmt.Errorf("missing required parameter: %s", p)
-
+		return zero, MissingRequiredParameterError{Parameter: p}
 	}
 
 	return r.GetArguments()[p].(T), nil
@@ -112,7 +115,11 @@ func OptionalParam[T any](r mcp.CallToolRequest, p string) (T, error) {
 
 	// Check if the parameter is of the expected type
 	if _, ok := r.GetArguments()[p].(T); !ok {
-		return zero, fmt.Errorf("parameter %s is not of type %T, is %T", p, zero, r.GetArguments()[p])
+		return zero, InvalidParameterTypeError{
+			Parameter: p,
+			Expected:  fmt.Sprintf("%T", zero),
+			Actual:    fmt.Sprintf("%T", r.GetArguments()[p]),
+		}
 	}
 
 	return r.GetArguments()[p].(T), nil
@@ -163,13 +170,21 @@ func OptionalStringArrayParam(r mcp.CallToolRequest, p string) ([]string, error)
 		for i, v := range v {
 			s, ok := v.(string)
 			if !ok {
-				return []string{}, fmt.Errorf("parameter %s is not of type string, is %T", p, v)
+				return []string{}, InvalidParameterTypeError{
+					Parameter: p,
+					Expected:  "string",
+					Actual:    fmt.Sprintf("%T", v),
+				}
 			}
 			strSlice[i] = s
 		}
 		return strSlice, nil
 	default:
-		return []string{}, fmt.Errorf("parameter %s could not be coerced to []string, is %T", p, r.GetArguments()[p])
+		return []string{}, InvalidParameterTypeError{
+			Parameter: p,
+			Expected:  "[]string",
+			Actual:    fmt.Sprintf("%T", r.GetArguments()[p]),
+		}
 	}
 }
 
