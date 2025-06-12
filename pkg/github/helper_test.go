@@ -138,7 +138,7 @@ func getErrorResult(t *testing.T, result *mcp.CallToolResult) mcp.TextContent {
 	return res
 }
 
-// getTextResourceResultis a helper function that returns a text result from a tool call.
+// getTextResourceResult is a helper function that returns a text result from a tool call.
 func getTextResourceResult(t *testing.T, result *mcp.CallToolResult) mcp.TextResourceContents {
 	t.Helper()
 	assert.NotNil(t, result)
